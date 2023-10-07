@@ -3,11 +3,14 @@ package main
 import (
 	"fmt"
 	config "zhang/configuration"
+
+	"github.com/james-bowman/sparse"
 )
 
 func main() {
 	//columns := config.SparseColumns()
-	csr_matrix := config.SparseMatrix()
-	matrix := config.NewCSRMatrix(csr_matrix)
-	fmt.Println(matrix.Data)
+	f := config.SparseMatrix()
+	csr_matrix := config.NewCSRMatrix(f)
+	csc_matrix := csr_matrix.T().(*sparse.CSC)
+	fmt.Println(csc_matrix)
 }

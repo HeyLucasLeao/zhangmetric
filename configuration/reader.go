@@ -3,44 +3,93 @@ package config
 import (
 	"log"
 
+	"github.com/james-bowman/sparse"
 	"github.com/nlpodyssey/gopickle/pickle"
 	"github.com/sbinet/npyio/npz"
 )
 
-type CSRMatrix struct {
-	Data    []bool
-	Indices []int32
-	Indptr  []int32
-	Columns interface{}
+func NewCSRMatrix(f *npz.Reader) *sparse.CSR {
+
+	data := read_data_npy(f)
+	indices := read_indices_npy(f)
+	indptr := read_indptr_npy(f)
+	shape := read_shape_npy(f)
+
+	defer f.Close()
+
+	//names, err := pickle.Load("./data/one_hot_columns.pkl")
+
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	return sparse.NewCSR(shape[0], shape[1], indices, indptr, data)
 }
 
-func NewCSRMatrix(f *npz.Reader) *CSRMatrix {
-	var data []bool
-	var indices []int32
-	var indptr []int32
+func read_data_npy(f *npz.Reader) []float64 {
 
+	var data []bool
 	err := f.Read("data.npy", &data)
 	if err != nil {
 		log.Fatalf("could not read value from npz file: %+v", err)
 	}
+	m := map[bool]float64{true: 1, false: 0}
 
-	err = f.Read("indices.npy", &indices)
+	var result []float64
+	for _, b := range data {
+		f := m[b]
+		result = append(result, f)
+	}
+
+	return result
+}
+
+func read_indices_npy(f *npz.Reader) []int {
+
+	var indices []int32
+	err := f.Read("indices.npy", &indices)
 	if err != nil {
 		log.Fatalf("could not read value from npz file: %+v", err)
 	}
 
-	err = f.Read("indptr.npy", &indptr)
+	var result []int
+	for _, v := range indices {
+		result = append(result, int(v))
+	}
+
+	return result
+}
+
+func read_indptr_npy(f *npz.Reader) []int {
+
+	var indptr []int32
+	err := f.Read("indptr.npy", &indptr)
 	if err != nil {
 		log.Fatalf("could not read value from npz file: %+v", err)
 	}
 
-	columns, err := pickle.Load("./data/one_hot_columns.pkl")
-
-	if err != nil {
-		log.Fatal(err)
+	var result []int
+	for _, v := range indptr {
+		result = append(result, int(v))
 	}
 
-	return &CSRMatrix{Data: data, Indices: indices, Indptr: indptr, Columns: columns}
+	return result
+}
+
+func read_shape_npy(f *npz.Reader) []int {
+
+	var shape []int64
+	err := f.Read("shape.npy", &shape)
+	if err != nil {
+		log.Fatalf("could not read value from npz file: %+v", err)
+	}
+
+	var result []int
+	for _, v := range shape {
+		result = append(result, int(v))
+	}
+
+	return result
 }
 
 func SparseColumns() interface{} {
