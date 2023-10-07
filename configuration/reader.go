@@ -11,6 +11,7 @@ type CSRMatrix struct {
 	Data    []bool
 	Indices []int32
 	Indptr  []int32
+	Columns interface{}
 }
 
 func NewCSRMatrix(f *npz.Reader) *CSRMatrix {
@@ -33,7 +34,13 @@ func NewCSRMatrix(f *npz.Reader) *CSRMatrix {
 		log.Fatalf("could not read value from npz file: %+v", err)
 	}
 
-	return &CSRMatrix{Data: data, Indices: indices, Indptr: indptr}
+	columns, err := pickle.Load("./data/one_hot_columns.pkl")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &CSRMatrix{Data: data, Indices: indices, Indptr: indptr, Columns: columns}
 }
 
 func SparseColumns() interface{} {

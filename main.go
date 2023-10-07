@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	config "zheng/configuration"
+	config "zhang/configuration"
 )
 
 func main() {
@@ -10,5 +10,4 @@ func main() {
 	csr_matrix := config.SparseMatrix()
 	matrix := config.NewCSRMatrix(csr_matrix)
 	fmt.Println(matrix.Data)
-
 }
