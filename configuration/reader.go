@@ -17,13 +17,17 @@ func NewCSRMatrix(f *npz.Reader) *sparse.CSR {
 
 	defer f.Close()
 
-	//names, err := pickle.Load("./data/one_hot_columns.pkl")
-
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
 	return sparse.NewCSR(shape[0], shape[1], indices, indptr, data)
+}
+
+func NewNames() interface{} {
+	f, err := pickle.Load("./data/one_hot_columns.pkl")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return f
 }
 
 func read_data_npy(f *npz.Reader) []float64 {
@@ -103,7 +107,7 @@ func SparseColumns() interface{} {
 
 }
 
-func SparseMatrix() *npz.Reader {
+func NewSparseMatrix() *npz.Reader {
 
 	f, err := npz.Open("./data/one_hot_values.npz")
 
