@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
 	config "zhang/configuration"
-
-	"github.com/james-bowman/sparse"
+	pipe "zhang/pipeline"
 )
 
 func main() {
 	//columns := config.SparseColumns()
-	f := config.SparseMatrix()
-	csr_matrix := config.NewCSRMatrix(f)
-	csc_matrix := csr_matrix.T().(*sparse.CSC)
-	fmt.Println(csc_matrix)
+	f := config.NewReadNpz()
+	shape, indptr, indices, data := config.NewReadNpy(f)
+	csc_matrix := pipe.NewCSCMatrix(shape[0], shape[1], indptr, indices, data)
+	pipe.NewColumnValues(csc_matrix)
 }

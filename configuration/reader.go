@@ -3,21 +3,20 @@ package config
 import (
 	"log"
 
-	"github.com/james-bowman/sparse"
 	"github.com/nlpodyssey/gopickle/pickle"
 	"github.com/sbinet/npyio/npz"
 )
 
-func NewCSRMatrix(f *npz.Reader) *sparse.CSR {
+func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 
-	data := read_data_npy(f)
-	indices := read_indices_npy(f)
-	indptr := read_indptr_npy(f)
 	shape := read_shape_npy(f)
+	indptr := read_indptr_npy(f)
+	indices := read_indices_npy(f)
+	data := read_data_npy(f)
 
 	defer f.Close()
 
-	return sparse.NewCSR(shape[0], shape[1], indices, indptr, data)
+	return shape, indptr, indices, data
 }
 
 func NewNames() interface{} {
@@ -96,18 +95,7 @@ func read_shape_npy(f *npz.Reader) []int {
 	return result
 }
 
-func SparseColumns() interface{} {
-	f, err := pickle.Load("./data/one_hot_columns.pkl")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return f
-
-}
-
-func NewSparseMatrix() *npz.Reader {
+func NewReadNpz() *npz.Reader {
 
 	f, err := npz.Open("./data/one_hot_values.npz")
 
