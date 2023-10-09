@@ -8,13 +8,13 @@ func NewCSCMatrix(r int, c int, indptr []int, indices []int, data []float64) *sp
 	return sparse.NewCSC(r, c, indptr, indices, data)
 }
 
-func NewColumnValues(m *sparse.CSC) []float64 {
+func NewColumnValues(m *sparse.CSC) *[]float64 {
 	arr := make([]float64, m.RawMatrix().J)
-	for i := 0; i < m.RawMatrix().I; i++ {
-		row := m.At(i, 0)
-		if row > 0 {
-			arr[i] = row
+	for i := 0; i < m.RawMatrix().J; i++ {
+		sl := m.RawMatrix().Ind[m.RawMatrix().Indptr[i]:m.RawMatrix().Indptr[i+1]]
+		for _, j := range sl {
+			arr[j] = 1
 		}
 	}
-	return arr
+	return &arr
 }
