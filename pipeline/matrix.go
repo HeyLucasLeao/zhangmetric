@@ -8,7 +8,7 @@ func NewCSRMatrix(r int, c int, indptr []int, indices []int, data []float64) *sp
 	return sparse.NewCSR(r, c, indptr, indices, data)
 }
 
-func NewColumnValues(mat *sparse.CSC, idx int) *[]float64 {
+func NewProductMatrix(mat *sparse.CSC, idx int) *[]float64 {
 	arr := make([]float64, mat.RawMatrix().J)
 	sl := mat.RawMatrix().Ind[mat.RawMatrix().Indptr[idx]:mat.RawMatrix().Indptr[idx+1]]
 
@@ -16,4 +16,15 @@ func NewColumnValues(mat *sparse.CSC, idx int) *[]float64 {
 		arr[j] = 1
 	}
 	return &arr
+}
+
+func NewProductIndex(products *map[interface{}]int, product_name string) int {
+	// Check if a key exists
+	idx, ok := (*products)[product_name]
+
+	if !ok {
+		return -1
+	}
+
+	return idx
 }

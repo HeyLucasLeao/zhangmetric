@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/nlpodyssey/gopickle/pickle"
+	"github.com/nlpodyssey/gopickle/types"
 	"github.com/sbinet/npyio/npz"
 )
 
@@ -19,14 +20,25 @@ func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 	return shape, indptr, indices, data
 }
 
-func NewNames() interface{} {
+func ReadProducts() *map[interface{}]int {
 	f, err := pickle.Load("./data/one_hot_columns.pkl")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return f
+	slice, ok := f.(*types.List)
+
+	if !ok {
+		log.Fatal("Could not convert file into *types.List")
+	}
+
+	mat := make(map[interface{}]int)
+	for i := 0; i < slice.Len(); i++ {
+		mat[slice.Get(i)] = i
+	}
+
+	return &mat
 }
 
 func read_data_npy(f *npz.Reader) []float64 {
