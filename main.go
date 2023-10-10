@@ -22,9 +22,13 @@ func main() {
 	products := config.NewReadPickle()
 	csr_matrix := pipe.NewCSRMatrix(shape[0], shape[1], indptr, indices, data)
 	csc_matrix := csr_matrix.ToCSC()
-	idx := pipe.NewProductIndex(products, "10101012")
-	mat1 := pipe.NewProductMatrix(csc_matrix, idx)
-	idx2 := pipe.NewProductIndex(products, "3")
-	mat2 := pipe.NewProductMatrix(csc_matrix, idx2)
-	fmt.Println(pipe.ZhangMetric(mat1, mat2))
+	arr := []string{"10101012", "1900622023", "-1", "74403460", "31005497"}
+	response := pipe.GenerateResponse(csc_matrix, products, arr)
+
+	for key1, innerMap := range *response {
+		for key2, value := range innerMap {
+			fmt.Printf("Itens: %s & %s - Score %2f\n", key1, key2, value)
+		}
+	}
+
 }
