@@ -9,12 +9,19 @@ func NewCSRMatrix(r int, c int, indptr []int, indices []int, data []float64) *sp
 }
 
 func NewProductMatrix(mat *sparse.CSC, idx int) *[]float64 {
+
 	arr := make([]float64, mat.RawMatrix().J)
+
+	if idx == -1 {
+		return &arr
+	}
+
 	sl := mat.RawMatrix().Ind[mat.RawMatrix().Indptr[idx]:mat.RawMatrix().Indptr[idx+1]]
 
 	for _, j := range sl {
 		arr[j] = 1
 	}
+
 	return &arr
 }
 

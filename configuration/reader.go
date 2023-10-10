@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/nlpodyssey/gopickle/pickle"
 	"github.com/nlpodyssey/gopickle/types"
@@ -20,8 +22,9 @@ func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 	return shape, indptr, indices, data
 }
 
-func ReadProducts() *map[interface{}]int {
-	f, err := pickle.Load("./data/one_hot_columns.pkl")
+func NewReadPickle() *map[interface{}]int {
+	filepath := fmt.Sprintf("./data/%s", os.Getenv("PRODUCT_FILENAME"))
+	f, err := pickle.Load(filepath)
 
 	if err != nil {
 		log.Fatal(err)
@@ -108,8 +111,9 @@ func read_shape_npy(f *npz.Reader) []int {
 }
 
 func NewReadNpz() *npz.Reader {
+	filepath := fmt.Sprintf("./data/%s", os.Getenv("NPZ_FILENAME"))
 
-	f, err := npz.Open("./data/one_hot_values.npz")
+	f, err := npz.Open(filepath)
 
 	if err != nil {
 		log.Fatal(err)
