@@ -36,8 +36,7 @@ func main() {
 	f := config.NewReadNpz()
 	shape, indptr, indices, data := config.NewReadNpy(f)
 	pickle_products := config.NewReadPickle()
-	csr_matrix := pipe.NewCSRMatrix(shape[0], shape[1], indptr, indices, data)
-	csc_matrix := csr_matrix.ToCSC()
+	csc_matrix := pipe.NewCSRMatrix(shape[0], shape[1], indptr, indices, data).ToCSC()
 
 	r := gin.Default()
 
