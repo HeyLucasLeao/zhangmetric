@@ -44,7 +44,7 @@ func zhangMetric(antecedent, consequent *[]float64) string {
 	denominator := math.Max(supportAC*(1-supportA), supportA*(supportC-supportAC))
 
 	if denominator == 0 {
-		return "Itens sem registros juntos!"
+		return "-"
 	}
 
 	return fmt.Sprintf("%f", numerator/denominator)
@@ -65,14 +65,13 @@ func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int) func
 func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []string) *map[string]string {
 	iterator := iterium.Combinations(arr, 2)
 	combination, err := iterator.Slice()
-	iterator = iterium.New(combination...)
 
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
 
+	iterator = iterium.New(combination...)
 	partial := calculateMetric(csc_matrix, products)
-
 	starmap := iterium.StarMap(iterator, partial)
 
 	score, err := starmap.Slice()
