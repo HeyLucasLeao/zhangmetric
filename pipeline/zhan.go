@@ -1,6 +1,7 @@
 package pipe
 
 import (
+	"fmt"
 	"log"
 	"math"
 
@@ -33,7 +34,7 @@ func logicalAndMean(a, b *[]float64) float64 {
 	return count / float64(len(*a))
 }
 
-func zhangMetric(antecedent, consequent *[]float64) float64 {
+func zhangMetric(antecedent, consequent *[]float64) string {
 	supportA := mean(antecedent)
 	supportC := mean(consequent)
 
@@ -43,37 +44,48 @@ func zhangMetric(antecedent, consequent *[]float64) float64 {
 	denominator := math.Max(supportAC*(1-supportA), supportA*(supportC-supportAC))
 
 	if denominator == 0 {
-		return -1.0
+		return "Itens sem registros juntos!"
 	}
 
-	return numerator / denominator
+	return fmt.Sprintf("%f", numerator/denominator)
 }
 
-func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int, antecedent string, consequent string) float64 {
+func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int) func(antecedent string, consequent string) string {
+	return func(antecedent string, consequent string) string {
+		idxA := NewProductIndex(products, antecedent)
+		matA := NewProductMatrix(csc_matrix, idxA)
 
-	idxA := NewProductIndex(products, antecedent)
-	matA := NewProductMatrix(csc_matrix, idxA)
+		idxC := NewProductIndex(products, consequent)
+		matC := NewProductMatrix(csc_matrix, idxC)
 
-	idxC := NewProductIndex(products, consequent)
-	matC := NewProductMatrix(csc_matrix, idxC)
-
-	return zhangMetric(matA, matC)
+		return zhangMetric(matA, matC)
+	}
 }
 
-func GenerateResponse(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []string) *map[string]map[string]float64 {
+func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []string) *map[string]string {
 	iterator := iterium.Combinations(arr, 2)
-	comb, err := iterator.Slice()
+	combination, err := iterator.Slice()
+	iterator = iterium.New(combination...)
 
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
 
-	matrix := make(map[string]map[string]float64)
+	partial := calculateMetric(csc_matrix, products)
 
-	for _, array := range comb {
-		matrix[array[0]] = make(map[string]float64)
-		matrix[array[0]][array[1]] = calculateMetric(csc_matrix, products, array[0], array[1])
+	starmap := iterium.StarMap(iterator, partial)
+
+	score, err := starmap.Slice()
+
+	if err != nil {
+		log.Fatalf("%s", err)
 	}
 
-	return &matrix
+	mat := make(map[string]string)
+	for i, key := range combination {
+		keyStr := key[0] + ",  " + key[1]
+		mat[keyStr] = score[i]
+	}
+
+	return &mat
 }
