@@ -12,10 +12,10 @@ import (
 
 func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 
-	shape := read_shape_npy(f)
-	indptr := read_indptr_npy(f)
-	indices := read_indices_npy(f)
-	data := read_data_npy(f)
+	shape := readShapeNpy(f)
+	indptr := readIntptrNpy(f)
+	indices := readIndicesNpy(f)
+	data := readDataNpy(f)
 
 	defer f.Close()
 
@@ -44,7 +44,7 @@ func NewReadPickle() *map[interface{}]int {
 	return &mat
 }
 
-func read_data_npy(f *npz.Reader) []float64 {
+func readDataNpy(f *npz.Reader) []float64 {
 
 	var data []bool
 	err := f.Read("data.npy", &data)
@@ -62,7 +62,7 @@ func read_data_npy(f *npz.Reader) []float64 {
 	return result
 }
 
-func read_indices_npy(f *npz.Reader) []int {
+func readIndicesNpy(f *npz.Reader) []int {
 
 	var indices []int32
 	err := f.Read("indices.npy", &indices)
@@ -78,7 +78,7 @@ func read_indices_npy(f *npz.Reader) []int {
 	return result
 }
 
-func read_indptr_npy(f *npz.Reader) []int {
+func readIntptrNpy(f *npz.Reader) []int {
 
 	var indptr []int32
 	err := f.Read("indptr.npy", &indptr)
@@ -94,7 +94,7 @@ func read_indptr_npy(f *npz.Reader) []int {
 	return result
 }
 
-func read_shape_npy(f *npz.Reader) []int {
+func readShapeNpy(f *npz.Reader) []int {
 
 	var shape []int64
 	err := f.Read("shape.npy", &shape)
