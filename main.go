@@ -12,7 +12,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func getProducts(ctx *gin.Context, csc_matrix *sparse.CSC, products *map[interface{}]int) {
+func scoreProducts(ctx *gin.Context, csc_matrix *sparse.CSC, products *map[interface{}]int) {
 	var request_products []string
 	err := ctx.ShouldBindJSON(&request_products)
 
@@ -40,7 +40,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/score", func(ctx *gin.Context) { getProducts(ctx, csc_matrix, pickle_products) })
+	r.GET("/score", func(ctx *gin.Context) { scoreProducts(ctx, csc_matrix, pickle_products) })
 
 	r.Run()
 
