@@ -40,7 +40,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/score", func(ctx *gin.Context) { scoreProducts(ctx, csc_matrix, pickle_products) })
+	r.POST("/score", func(ctx *gin.Context) { scoreProducts(ctx, csc_matrix, pickle_products) })
 
 	r.Run()
 
