@@ -1,7 +1,6 @@
 package pipe
 
 import (
-	"fmt"
 	"log"
 	"math"
 
@@ -34,7 +33,7 @@ func logicalAndMean(a, b *[]float64) float64 {
 	return count / float64(len(*a))
 }
 
-func zhangMetric(antecedent, consequent *[]float64) string {
+func zhangMetric(antecedent, consequent *[]float64) *float64 {
 	supportA := mean(antecedent)
 	supportC := mean(consequent)
 
@@ -44,14 +43,37 @@ func zhangMetric(antecedent, consequent *[]float64) string {
 	denominator := math.Max(supportAC*(1-supportA), supportA*(supportC-supportAC))
 
 	if denominator == 0 {
-		return "-"
+		return nil
 	}
 
-	return fmt.Sprintf("%f", numerator/denominator)
+	score := numerator / denominator
+
+	return &score
 }
 
-func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int) func(antecedent string, consequent string) string {
-	return func(antecedent string, consequent string) string {
+func starMap[T any](iterable iterium.Iter[[]T], apply func(T, T) *float64) iterium.Iter[*float64] {
+	iter := iterium.Instance[*float64](iterable.Count(), iterable.IsInfinite())
+
+	go func() {
+		defer iterium.IterRecover()
+		defer iter.Close()
+
+		for {
+			next, err := iterable.Next()
+			if err != nil {
+				return
+			}
+
+			// Apply the function to the values from the slide.
+			iter.Chan() <- apply(next[0], next[1])
+		}
+	}()
+
+	return iter
+}
+
+func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int) func(antecedent string, consequent string) *float64 {
+	return func(antecedent string, consequent string) *float64 {
 		idxA := NewProductIndex(products, antecedent)
 		matA := NewProductMatrix(csc_matrix, idxA)
 
@@ -62,7 +84,7 @@ func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int) func
 	}
 }
 
-func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []string) *map[string]string {
+func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []string) *map[string]*float64 {
 	iterator := iterium.Combinations(arr, 2)
 	combination, err := iterator.Slice()
 
@@ -72,7 +94,7 @@ func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []strin
 
 	iterator = iterium.New(combination...)
 	partial := calculateMetric(csc_matrix, products)
-	starmap := iterium.StarMap(iterator, partial)
+	starmap := starMap(iterator, partial)
 
 	score, err := starmap.Slice()
 
@@ -80,7 +102,7 @@ func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []strin
 		log.Fatalf("%s", err)
 	}
 
-	mat := make(map[string]string)
+	mat := make(map[string]*float64)
 	for i, key := range combination {
 		keyStr := key[0] + ",  " + key[1]
 		mat[keyStr] = score[i]
