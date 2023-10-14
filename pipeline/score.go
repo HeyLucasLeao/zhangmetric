@@ -3,10 +3,17 @@ package pipe
 import (
 	"log"
 	"math"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/james-bowman/sparse"
 	"github.com/mowshon/iterium"
 )
+
+type ProductScorer struct {
+	Matrix   *sparse.CSC
+	Products *map[interface{}]int
+}
 
 func mean(mat *[]float64) float64 {
 	sum := 0.0
@@ -72,19 +79,18 @@ func starMap[T any](iterable iterium.Iter[[]T], apply func(T, T) *float64) iteri
 	return iter
 }
 
-func calculateMetric(csc_matrix *sparse.CSC, products *map[interface{}]int) func(antecedent string, consequent string) *float64 {
-	return func(antecedent string, consequent string) *float64 {
-		idxA := NewProductIndex(products, antecedent)
-		matA := NewProductMatrix(csc_matrix, idxA)
+func (s ProductScorer) calculateMetric(antecedent string, consequent string) *float64 {
 
-		idxC := NewProductIndex(products, consequent)
-		matC := NewProductMatrix(csc_matrix, idxC)
+	idxA := s.NewProductIndex(antecedent)
+	matA := s.NewProductMatrix(idxA)
 
-		return zhangMetric(matA, matC)
-	}
+	idxC := s.NewProductIndex(consequent)
+	matC := s.NewProductMatrix(idxC)
+
+	return zhangMetric(matA, matC)
 }
 
-func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []string) *map[string]*float64 {
+func (s ProductScorer) newScore(arr []string) *map[string]*float64 {
 	iterator := iterium.Combinations(arr, 2)
 	combination, err := iterator.Slice()
 
@@ -93,8 +99,7 @@ func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []strin
 	}
 
 	iterator = iterium.New(combination...)
-	partial := calculateMetric(csc_matrix, products)
-	starmap := starMap(iterator, partial)
+	starmap := starMap(iterator, s.calculateMetric)
 
 	score, err := starmap.Slice()
 
@@ -109,4 +114,17 @@ func NewScore(csc_matrix *sparse.CSC, products *map[interface{}]int, arr []strin
 	}
 
 	return &mat
+}
+
+func (s ProductScorer) PostScore(ctx *gin.Context) {
+	var request_products []string
+	err := ctx.ShouldBindJSON(&request_products)
+
+	if err != nil {
+		ctx.JSON(http.StatusForbidden, err)
+	}
+
+	mat := s.newScore(request_products)
+
+	ctx.JSON(http.StatusOK, mat)
 }

@@ -2,28 +2,13 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	config "zhang/configuration"
 	pipe "zhang/pipeline"
 
 	"github.com/gin-gonic/gin"
-	"github.com/james-bowman/sparse"
 	"github.com/joho/godotenv"
 )
-
-func scoreProducts(ctx *gin.Context, csc_matrix *sparse.CSC, products *map[interface{}]int) {
-	var request_products []string
-	err := ctx.ShouldBindJSON(&request_products)
-
-	if err != nil {
-		ctx.JSON(http.StatusForbidden, err)
-	}
-
-	mat := pipe.NewScore(csc_matrix, products, request_products)
-
-	ctx.JSON(http.StatusOK, mat)
-}
 
 func main() {
 	err := godotenv.Load()
@@ -37,10 +22,11 @@ func main() {
 	shape, indptr, indices, data := config.NewReadNpy(f)
 	pickle_products := config.NewReadPickle()
 	csc_matrix := pipe.NewCSRMatrix(shape[0], shape[1], indptr, indices, data).ToCSC()
+	scorer := pipe.ProductScorer{Matrix: csc_matrix, Products: pickle_products}
 
 	r := gin.Default()
 
-	r.POST("/score", func(ctx *gin.Context) { scoreProducts(ctx, csc_matrix, pickle_products) })
+	r.POST("/score", scorer.PostScore)
 
 	r.Run()
 
