@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	config "zhang/configuration"
 
 	"github.com/gin-gonic/gin"
 	"github.com/james-bowman/sparse"
@@ -79,13 +80,42 @@ func starMap[T any](iterable iterium.Iter[[]T], apply func(T, T) *float64) iteri
 	return iter
 }
 
+func (s ProductScorer) newProductIndex(product_name string) int {
+	// Check if a key exists
+	idx, ok := (*s.Products)[product_name]
+
+	if !ok {
+		return -1
+	}
+
+	return idx
+}
+
+func (s ProductScorer) newProductMatrix(idx int) *[]float64 {
+
+	mat := s.Matrix.RawMatrix()
+	arr := make([]float64, mat.J)
+
+	if idx == -1 {
+		return &arr
+	}
+
+	sl := mat.Ind[mat.Indptr[idx]:mat.Indptr[idx+1]]
+
+	for _, j := range sl {
+		arr[j] = 1
+	}
+
+	return &arr
+}
+
 func (s ProductScorer) calculateMetric(antecedent string, consequent string) *float64 {
 
-	idxA := s.NewProductIndex(antecedent)
-	matA := s.NewProductMatrix(idxA)
+	idxA := s.newProductIndex(antecedent)
+	matA := s.newProductMatrix(idxA)
 
-	idxC := s.NewProductIndex(consequent)
-	matC := s.NewProductMatrix(idxC)
+	idxC := s.newProductIndex(consequent)
+	matC := s.newProductMatrix(idxC)
 
 	return zhangMetric(matA, matC)
 }
@@ -114,6 +144,18 @@ func (s ProductScorer) newScore(arr []string) *map[string]*float64 {
 	}
 
 	return &mat
+}
+
+func (s *ProductScorer) LoadFiles() {
+
+	f := config.NewReadNpz()
+	shape, indptr, indices, data := config.NewReadNpy(f)
+	mat := sparse.NewCSR(shape[0], shape[1], indptr, indices, data).ToCSC()
+
+	products := config.NewReadPickle()
+
+	s.Matrix = mat
+	s.Products = products
 }
 
 func (s ProductScorer) PostScore(ctx *gin.Context) {

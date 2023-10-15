@@ -10,6 +10,18 @@ import (
 	"github.com/sbinet/npyio/npz"
 )
 
+func NewReadNpz() *npz.Reader {
+	filepath := fmt.Sprintf("./data/%s", os.Getenv("NPZ_FILENAME"))
+
+	f, err := npz.Open(filepath)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return f
+}
+
 func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 
 	shape := readShapeNpy(f)
@@ -108,16 +120,4 @@ func readShapeNpy(f *npz.Reader) []int {
 	}
 
 	return result
-}
-
-func NewReadNpz() *npz.Reader {
-	filepath := fmt.Sprintf("./data/%s", os.Getenv("NPZ_FILENAME"))
-
-	f, err := npz.Open(filepath)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return f
 }

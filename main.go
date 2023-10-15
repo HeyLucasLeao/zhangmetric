@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	config "zhang/configuration"
 	pipe "zhang/pipeline"
 
 	"github.com/gin-gonic/gin"
@@ -18,11 +17,9 @@ func main() {
 		return
 	}
 
-	f := config.NewReadNpz()
-	shape, indptr, indices, data := config.NewReadNpy(f)
-	pickle_products := config.NewReadPickle()
-	csc_matrix := pipe.NewCSRMatrix(shape[0], shape[1], indptr, indices, data).ToCSC()
-	scorer := pipe.ProductScorer{Matrix: csc_matrix, Products: pickle_products}
+	var scorer pipe.ProductScorer
+
+	scorer.LoadFiles()
 
 	r := gin.Default()
 
