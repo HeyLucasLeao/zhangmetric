@@ -19,7 +19,7 @@ func main() {
 
 	var scorer pipe.ProductScorer
 
-	scorer.LoadFiles()
+	scorer.Load()
 
 	r := gin.Default()
 

@@ -11,11 +11,13 @@ import (
 	"github.com/mowshon/iterium"
 )
 
+// Struct with SparseMatrix and Product names
 type ProductScorer struct {
 	Matrix   *sparse.CSC
 	Products *map[interface{}]int
 }
 
+// Calculate Mean
 func mean(mat *[]float64) float64 {
 	sum := 0.0
 	total := len(*mat)
@@ -26,6 +28,7 @@ func mean(mat *[]float64) float64 {
 	return sum / float64(total)
 }
 
+// For each index, check whether there are values ​​in both vectors. If it exists, add it up and calculate its average
 func logicalAndMean(a, b *[]float64) float64 {
 	if len(*a) != len(*b) {
 		log.Fatalf("Error: slices are not the same length")
@@ -41,6 +44,7 @@ func logicalAndMean(a, b *[]float64) float64 {
 	return count / float64(len(*a))
 }
 
+// Generate Zhang's Metric
 func zhangMetric(antecedent, consequent *[]float64) *float64 {
 	supportA := mean(antecedent)
 	supportC := mean(consequent)
@@ -80,6 +84,7 @@ func starMap[T any](iterable iterium.Iter[[]T], apply func(T, T) *float64) iteri
 	return iter
 }
 
+// Check the index of a product name in the ProductScorer.Products
 func (s ProductScorer) newProductIndex(product_name string) int {
 	// Check if a key exists
 	idx, ok := (*s.Products)[product_name]
@@ -91,6 +96,7 @@ func (s ProductScorer) newProductIndex(product_name string) int {
 	return idx
 }
 
+// Replicate the product's vector in the *Sparse.CSC
 func (s ProductScorer) newProductMatrix(idx int) *[]float64 {
 
 	mat := s.Matrix.RawMatrix()
@@ -109,6 +115,7 @@ func (s ProductScorer) newProductMatrix(idx int) *[]float64 {
 	return &arr
 }
 
+// Check the indexes and matrices of two products to return the Zhang's Metric
 func (s ProductScorer) calculateMetric(antecedent string, consequent string) *float64 {
 
 	idxA := s.newProductIndex(antecedent)
@@ -120,8 +127,9 @@ func (s ProductScorer) calculateMetric(antecedent string, consequent string) *fl
 	return zhangMetric(matA, matC)
 }
 
-func (s ProductScorer) newScore(arr []string) *map[string]*float64 {
-	iterator := iterium.Combinations(arr, 2)
+// Generate every combination of two products from each value on request, and generate Zhang's Metric from every combination
+func (s ProductScorer) newScore(request []string) *map[string]*float64 {
+	iterator := iterium.Combinations(request, 2)
 	combination, err := iterator.Slice()
 
 	if err != nil {
@@ -146,7 +154,8 @@ func (s ProductScorer) newScore(arr []string) *map[string]*float64 {
 	return &mat
 }
 
-func (s *ProductScorer) LoadFiles() {
+// Read NPZ & Pickle files and store them in *ProductScorer struct
+func (s *ProductScorer) Load() {
 
 	f := config.NewReadNpz()
 	shape, indptr, indices, data := config.NewReadNpy(f)
@@ -158,15 +167,16 @@ func (s *ProductScorer) LoadFiles() {
 	s.Products = products
 }
 
+// Read a JSON []string, and return it's score
 func (s ProductScorer) PostScore(ctx *gin.Context) {
-	var request_products []string
-	err := ctx.ShouldBindJSON(&request_products)
+	var request []string
+	err := ctx.ShouldBindJSON(&request)
 
 	if err != nil {
 		ctx.JSON(http.StatusForbidden, err)
 	}
 
-	mat := s.newScore(request_products)
+	mat := s.newScore(request)
 
 	ctx.JSON(http.StatusOK, mat)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/sbinet/npyio/npz"
 )
 
+// Read NPZ file in ./data folder
 func NewReadNpz() *npz.Reader {
 	filepath := fmt.Sprintf("./data/%s", os.Getenv("NPZ_FILENAME"))
 
@@ -22,6 +23,7 @@ func NewReadNpz() *npz.Reader {
 	return f
 }
 
+// Read Npy files inside NPZ File
 func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 
 	shape := readShapeNpy(f)
@@ -34,6 +36,7 @@ func NewReadNpy(f *npz.Reader) ([]int, []int, []int, []float64) {
 	return shape, indptr, indices, data
 }
 
+// Read []string Python object pickle stored
 func NewReadPickle() *map[interface{}]int {
 	filepath := fmt.Sprintf("./data/%s", os.Getenv("PRODUCT_FILENAME"))
 	f, err := pickle.Load(filepath)
@@ -56,6 +59,7 @@ func NewReadPickle() *map[interface{}]int {
 	return &mat
 }
 
+// Read data.npy from NPZ File and convert as []float64
 func readDataNpy(f *npz.Reader) []float64 {
 
 	var data []bool
@@ -74,6 +78,7 @@ func readDataNpy(f *npz.Reader) []float64 {
 	return result
 }
 
+// Read indices.npy from NPZ File and convert as []int
 func readIndicesNpy(f *npz.Reader) []int {
 
 	var indices []int32
@@ -90,6 +95,7 @@ func readIndicesNpy(f *npz.Reader) []int {
 	return result
 }
 
+// Read indptr.npy from NPZ File and return as []int
 func readIntptrNpy(f *npz.Reader) []int {
 
 	var indptr []int32
@@ -106,6 +112,7 @@ func readIntptrNpy(f *npz.Reader) []int {
 	return result
 }
 
+// Read shape.npy from NPZ File and return as []int
 func readShapeNpy(f *npz.Reader) []int {
 
 	var shape []int64
