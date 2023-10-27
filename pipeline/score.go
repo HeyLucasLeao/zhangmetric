@@ -174,6 +174,7 @@ func (s ProductScorer) PostScore(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusForbidden, err)
+		return
 	}
 
 	mat := s.newScore(request)
